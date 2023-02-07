@@ -57,7 +57,8 @@ const UserPage = () => {
         'click',
         function (){ axios.get('http://localhost:8080/member/roleChange', {
           params: {username: changeid, roleType: changeRole}
-        }).then(res => res.data==="equal" ? alert("이미 설정된 등급입니다"): alert(res.data))}
+        }).then(res => res.data==="equal" ? alert("이미 설정된 등급입니다"): alert(res.data)),
+        window.location.reload()}
     )
     button2.addEventListener(
         'click',

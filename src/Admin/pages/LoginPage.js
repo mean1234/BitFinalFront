@@ -63,6 +63,22 @@ const adminStoreDel = (storeDel) => {
         .catch(error => console.log(error))
 }
 
+const [adminStoreSearchKeyword, setAdminStoreSearchKeyword] = useState('')
+const [adminStoreSearchOption, setAdminStoreSearchOption]=useState('subject')
+
+const onAdminStoreSearch = (e) => {
+  e.preventDefault();
+  axios.get('http://localhost:8080/store/adminStoreSearch',{
+    params:{
+      adminStoreSearchKeyword,
+      adminStoreSearchOption
+    }
+  })
+        .then(res => setAdminStoreList(res.data))
+        .catch(err => console.log(err))
+}
+
+
 
   return (
     <>
@@ -87,26 +103,30 @@ const adminStoreDel = (storeDel) => {
             {/* <img src="/assets/illustrations/illustration_login.png" alt="login" /> */}
             <img src="../../img/store22.png" alt="storeProduct" />
             <br/>
-            <br/>
           </StyledSection>
         )}
         {/* <Container maxWidth="s"> */}
-        <Container maxWidth="sm">
-        <StyledSection style={{width:550,height:780}}>
+        <Container maxWidth="s">
+        <StyledSection style={{width:500,height:780}}>
           <WriteForm/>
           </StyledSection>
         </Container>
-        <StyledSection>
+        <StyledSection style={{width:800,height:780}}>
          <Typography variant="h3" sx={{ px: 1, mt: 1, mb: 3 }} style={{textAlign:'center'}}>
          BIT BOX STORE | LIST
+         <div>
+         <input type='text' placeholder='Search the Subject'style={{fontSize:20,height:30,background:'transparent',borderTop:'none',borderLeft:'none',borderRight:'none' ,borderBottomWidth:1}} name="adminStoreSearchKeyword" value={adminStoreSearchKeyword} onChange={e => setAdminStoreSearchKeyword(e.target.value)}/>
+         <button style={{ all:'unset',color:'black',cursor:'pointer',fontSize:15}} onClick={onAdminStoreSearch} >
+          &nbsp;&nbsp;&nbsp;&nbsp;Search</button>
+         </div>
          </Typography>
-        <table style={{overflowX:'scroll',height:780}}>
+        <table style={{overflowX:'scroll',width:800,height:780}}>
         <thead>
           <tr style={{fontSize:20,textAlign:'center',color:'blue'}}>
-            <th>category</th>
-            <th >subject</th>
-            <th >content</th>
-            <th >price</th>
+            <th >Category</th>
+            <th >Subject</th>
+            <th >Detailed Content</th>
+            <th >Price</th>
           </tr>
         </thead>
         <tbody>
@@ -118,9 +138,10 @@ const adminStoreDel = (storeDel) => {
                 <td align="center">{item.subject}</td>
                 <td align="center">{item.content}</td>
                 <td align="center">{item.price}</td>
-                {/* <button onClick={adminStoreDel} >삭제</button> */}
                 &nbsp;&nbsp;
-                <button onClick={ () => { if (window.confirm(`${item.subject} 상품을 삭제하시겠습니까?`)){ adminStoreDel(item.store_seq); }} } style={{all:'unset',color:'red',cursor:'pointer'}} >삭제</button>
+                <td>
+                <button onClick={ () => { if (window.confirm(`${item.category} 카테고리의 ${item.subject} 상품을 삭제하시겠습니까?`)){ adminStoreDel(item.store_seq); }} } style={{all:'unset',color:'red',cursor:'pointer'}} >삭제</button>
+                </td>
               </tr>
               </>
             )

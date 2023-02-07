@@ -206,7 +206,7 @@ String movie_info_type = 영화소개부분의 영화 타입 https://www.themovi
 String movie_info_point = 영화소개에 들어갈그래프의 일종.  데이터가있어야 그래프가 완성됨.  */
     return (
         <>
-            <p>영화 검색기</p>
+            <span style={{fontSize:13,color:'green'}}>영화 추가</span>
             <br/>
             {   status === true ?
         <Card sx={{width:300,height:500}}>
@@ -259,11 +259,11 @@ String movie_info_point = 영화소개에 들어갈그래프의 일종.  데이�
         </Card>
                 : ""}
 
-        <input id={moviecdNum} onChange={(e)=>setMoviecdNum(e.target.value)} placeholder='Search ..Movie' style={{borderColor:'grey',borderRadius:10}}/>
-            <Button onClick={onSearch} style={{color:'#4B0082'}}>검색</Button>
-            &nbsp;
+         <input id={moviecdNum} onChange={(e)=>setMoviecdNum(e.target.value)} placeholder='Add Movies...'
+            style={{borderColor:'grey',borderRadius:10}}/>
+        &nbsp;&nbsp;&nbsp;<Button onClick={onSearch} style={{color:'#4B0082'}}>Search</Button>
             {/* <Button onClick={insertMovie} style={{color:'#2F4F4F'}}>추가</Button> */}
-            <Button onClick={ () => { if (window.confirm(`${moviecdNum} 영화을(를) 추가하시겠습니까?`)){ insertMovie(moviecdNum); }} } style={{color:'#2F4F4F'}}>추가</Button>
+        &nbsp;&nbsp;&nbsp; <Button onClick={ () => { if (window.confirm(`${moviecdNum} 영화을(를) 추가하시겠습니까?`)){ insertMovie(moviecdNum); }} } style={{color:'green'}}>Add</Button>
 
         </>
     );

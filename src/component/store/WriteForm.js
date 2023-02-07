@@ -167,7 +167,7 @@ import { borderBottom } from '@mui/system';
           <thead>
           <br/><br/>
             <tr>
-              <td width="140px" align="center" style={{fontSize:15,fontWeight:'bolder'}}>Product TITLE</td>
+              <td width="140px" align="center" style={{fontSize:15,fontWeight:'bolder'}}>Product Subject</td>
               <td>
                 <input type="text" name="subject" value={ subject } onChange={ onInput } onBlur={ isExistSubject } style={{width:250,background:'transparent',borderTop:'none',borderLeft:'none',borderRight:'none' ,borderBottomWidth:1}} placeholder='상품 제목'/>
                 <div id="subjectDiv">{ subjectDiv }</div>
