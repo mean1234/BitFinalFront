@@ -35,7 +35,7 @@ const movieDelete = (movieTitle)=> {
   const movieDeleteList = list.filter((item)=> item.movie_title !== movieTitle);
   setList(movieDeleteList);
   axios.delete(`http://localhost:8080/movielist/admin_movie_delete?movie_title=${movieTitle}`)
-        .then(()=>{alert('삭제 완료')})
+        .then(()=>{alert('삭제 완료'), window.location.reload()})
         .catch(error => console.log(error))
   
   }
@@ -46,6 +46,12 @@ const movieDelete = (movieTitle)=> {
 
   const onAdminMovieSearch = (e) => {
     e.preventDefault();
+
+    //검색어 입력 안했을 시 
+    if (adminMovieSearchKeyword.trim() === '') {
+      alert("검색어를 입력해주세요.");
+      return;
+    }
     axios.get('http://localhost:8080/movielist/adminMovieSearch',{
       params: {
         adminMovieSearchKeyword,

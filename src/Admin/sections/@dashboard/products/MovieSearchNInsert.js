@@ -36,6 +36,12 @@ export default function MovieSearchNInsert() {
     //네이버 영화 api
     const onSearch = () =>{
 
+         //검색어 입력 안했을 시 
+        if (moviecdNum.trim() === '') {
+            alert("검색어를 입력해주세요.");
+            return;
+          }
+
         axios.get(url,{
             params:{query: moviecdNum,language: "ko"},
             headers: {
@@ -48,7 +54,6 @@ export default function MovieSearchNInsert() {
          }).then(res => res.data.items.length === 0 ? alert("데이터 없음")|| setStatus(false)
                                                     : setMovieSearchData(res.data.items)||setStatus(true)
                 )
-
 
     }
     useEffect(()=>{
@@ -74,16 +79,19 @@ export default function MovieSearchNInsert() {
     },[otherQuery])
 
 
-
     // 이미지 불러오기
     useEffect(()=>{
+        if (moviecdNum === "") {
+            return;
+          }
     axios.get(url1, {
         params: {query: moviecdNum,language: "ko"},
         headers: {
             'Accept': '*/*',
             'Access-Control-Allow-Origin': '*',
         },
-    }).then((res) => {
+    })
+    .then((res) => {
             if (res.data.results.length > 0) {
                 setSetQuery(res.data.results[0].id)
             }
@@ -92,6 +100,8 @@ export default function MovieSearchNInsert() {
             }
         }
     )},[movieSearchData])
+
+    
 
     useEffect(()=>{
         axios.get(url2, {
@@ -159,22 +169,21 @@ export default function MovieSearchNInsert() {
         const form =
             [movie_title, movie_subtitle, movie_poster_url, movie_header_url, movie_already_released, movie_release_start,
                 movie_release_end,movie_class,movie_agegrade,movie_score,movie_info_title,movie_info_title2,movie_info_type
-                ];
+                ];  
 
-
-
+        // 영화 추가
          axios.post('http://localhost:8080/movielist/write',null,{
-        params:{
-            movie_title, movie_subtitle, movie_poster_url, movie_header_url, movie_already_released, movie_release_start,
-            movie_release_end,movie_class,movie_agegrade,movie_score,movie_info_title,movie_info_title2,movie_info_type
+            params:{
+              movie_title, movie_subtitle, movie_poster_url, movie_header_url, movie_already_released, movie_release_start,
+              movie_release_end,movie_class,movie_agegrade,movie_score,movie_info_title,movie_info_title2,movie_info_type
         }
-            }
+         }
             )
             // .then(res => alert(movie_title));
             .then((res)=>{
                 alert(`${movie_title} 을(를)추가하였습니다.`)
                window.location.reload()
-             })
+             }).catch(console.log('${movie_title} 을(를)추가'))
 
     }
 
