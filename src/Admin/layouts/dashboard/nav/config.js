@@ -27,8 +27,9 @@ const navConfig = [
   //   icon: icon('ic_blog'),
   // },
   {
+    // 관리자 store
     title: 'Store',
-    path: '/adminindex/login',
+    path: '/adminindex/AdminStore',
     icon: icon('ic_cart'),
   }
 ];

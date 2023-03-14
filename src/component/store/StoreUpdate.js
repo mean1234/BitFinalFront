@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import axios from 'axios';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from '../../css/writeForm.module.css';
-import axios from 'axios';
-import { borderBottom } from '@mui/system';
 
- const WriteForm = () => {
+
+ const StoreUpdate = (props) => {
   const [file, setFile] = useState('')
 
   const online = [
@@ -27,12 +27,34 @@ import { borderBottom } from '@mui/system';
     country: '',
     img: ''
   })
-  const { category, subject, subSubject, simpleContent, content, price, country, img } = form //비구조할당
+
+  //비구조할당
+  const {  store_seq,category, subject, subSubject, simpleContent, content, price, country, img } = form 
 
   const [subjectDiv, setSubjectDiv] = useState('')
   const [contentDiv, setContentDiv] = useState('')
   const [priceDiv, setPriceDiv] = useState('')
   const [countryDiv, setCountryDiv] = useState('')
+
+
+  //관리자 store 상품 수정 전 가져오기
+  useEffect (()=> {
+    axios.get(`http://localhost:8080/store/getAdminStoreList?store_seq=${props.props}`)
+          .then(res => {
+            setForm({
+              store_seq :res.data.store_seq,
+              category: res.data.category,
+              subject: res.data.subject,
+              subSubject: res.data.subSubject,
+              simpleContent: res.data.simpleContent,
+              content: res.data.content,
+              price: res.data.price,
+              country: res.data.country
+            })
+          })
+          .catch(error => console.log(error))
+  },[])
+  
 
   const onInput = (e) => {
     const { name, value } = e.target
@@ -46,6 +68,7 @@ import { borderBottom } from '@mui/system';
 
   const navigate = useNavigate()
 
+  // 관리자 store 이미지  
   const readURL = (input) => {
     var reader = new FileReader();
     reader.readAsDataURL(input.files[0]);
@@ -60,8 +83,8 @@ import { borderBottom } from '@mui/system';
     }
   }
 
-  
-  const onWriteSubmit = (e) => {
+  // 관리자 store 수정
+  const onUpdateSubmit = (e) => {
     e.preventDefault()
 
     setSubjectDiv('')
@@ -70,6 +93,7 @@ import { borderBottom } from '@mui/system';
     setCountryDiv('')
 
     // const sw = 1
+    // 관리자 store 수정 유효성 검사
     let sw = 1
     if(!subject) {
       setSubjectDiv('제목을 작성하세요!')
@@ -88,6 +112,7 @@ import { borderBottom } from '@mui/system';
       sw = 0
     }
 
+    // 관리자 store 이미지 업로드
     if(sw === 1) {
         var formData = new FormData()
         
@@ -102,20 +127,18 @@ import { borderBottom } from '@mui/system';
             .then()
             .catch(error => console.log(error))
 
-        //두번째
-        
-        axios.post('http://localhost:8080/store/write', null, { params: form })
+        //관리자 stroe 상품 수정
+        axios.put('http://localhost:8080/store/storeUpdate', null, { params: form })
              .then(() => {
-                alert('스토어에 품목이 등록되었어요!');
+                alert('스토어에 품목이 수정되었어요!');
                 navigate('/store/');
             })
              .catch(error => console.log(error))
     }
   }
 
+  // 관리자 store 중복검사 
   const isExistSubject = () => {
-    // console.log('seq='+(seq))
-    // console.log('subject='+(subject))
     axios.get(`http://localhost:8080/store/isExistSubject?subject=${subject}`)
          .then(res => {
             setSubjectDiv(res.data === 'non_exist' ? '등록 가능' : '등록 불가능')
@@ -123,38 +146,27 @@ import { borderBottom } from '@mui/system';
          .catch(error => console.log(error))
   }
 
-  const onReset = (e) => {
-    e.preventDefault()
-
-    setForm({
-      category: '',
-      subject: '',
-      subSubject: '',
-      simpleContent: '',
-      content: '',
-      price: '',
-      country: '',
-      img: ''
-    })
+  // 취소
+  const onClose = () => {
+    window.location.reload();
   }
 
   const [selected, setSelected] = React.useState("");
 
   return (
     
-    <div className='ststststs'>
+    <div className='ststststs' value={store_seq}>
        <br/>
       <h3 style={{textAlign:'center'}}>
         <Link to='/store'>
           <img src='../img_member/mainLogo_bit.png' width="70" height="70" style={{ cursor: 'pointer',display:'inline'}} />
         </Link>
         &nbsp;&nbsp;
-            <span className='stostosto' style={{textAlign:'right',verticalAlign:'middle'}}>스토어 제품 등록</span>
+            <span className='stostosto' style={{textAlign:'right',verticalAlign:'middle'}}>스토어 제품 수정</span>
       </h3>
-      <form className={ styles.writeForm } style={{maxWidth:800, textAlign:'center'}}>
-        
-        <br/>
-        <select onChange={ onInput } name="category" style={{maxWidth:600, textAlign:'center'}}>
+      <form className={ styles.writeForm } style={{maxWidth:800, textAlign:'center'}} value={store_seq} >
+
+        <select onChange={ onInput } name="category" style={{maxWidth:600, textAlign:'center'}} id={category} value={category}>
           <option>----- 카테고리를 선택해주세요 -----</option>
           <option value="combo">콤보</option>
           <option value="popcorn">팝콘</option>
@@ -162,23 +174,22 @@ import { borderBottom } from '@mui/system';
           <option value="snack">스낵</option>
         </select> 
 
-        {/* <table border="1" > */}
-        <table >
+        <table id="adSt">
           <thead>
           <br/><br/>
             <tr>
               <td width="140px" align="center" style={{fontSize:15,fontWeight:'bolder'}}>Product Subject</td>
               <td>
-                <input type="text" name="subject" value={ subject } onChange={ onInput } onBlur={ isExistSubject } style={{width:250,background:'transparent',borderTop:'none',borderLeft:'none',borderRight:'none' ,borderBottomWidth:1}} placeholder='상품 제목'/>
+                <input type="text" name="subject" id={subject} value={ subject } onChange={ onInput } onBlur={ isExistSubject } style={{width:250,background:'transparent',borderTop:'none',borderLeft:'none',borderRight:'none' ,borderBottomWidth:1}} placeholder='상품 제목'/>
                 <div id="subjectDiv">{ subjectDiv }</div>
               </td>
             </tr>
             <br/>
 
             <tr>
-              <td width="140px" align="center" style={{fontSize:15,fontWeight:'bolder'}}>Product SubTitle</td>
+              <td width="140px" align="center" style={{fontSize:15,fontWeight:'bolder'}}>Product Subject(2)</td>
               <td>
-                <input type="text" name="subSubject" value={ subSubject } onChange={ onInput } style={{width:250,background:'transparent',borderTop:'none',borderLeft:'none',borderRight:'none' ,borderBottomWidth:1}}
+                <input type="text" name="subSubject" id={subSubject} value={ subSubject } onChange={ onInput } style={{width:250,background:'transparent',borderTop:'none',borderLeft:'none',borderRight:'none' ,borderBottomWidth:1}}
                 placeholder='상품 소제목' />
               </td>
             </tr>
@@ -189,7 +200,7 @@ import { borderBottom } from '@mui/system';
             <tr>
               <td width="140px" align="center" style={{fontSize:15,fontWeight:'bolder'}}>Brief Content</td>
               <td>
-                <input type="text" name="simpleContent" value={ simpleContent } onChange={ onInput } style={{width:250,background:'transparent',borderTop:'none',borderLeft:'none',borderRight:'none' ,borderBottomWidth:1}} 
+                <input type="text" name="simpleContent" id={simpleContent} value={ simpleContent } onChange={ onInput } style={{width:250,background:'transparent',borderTop:'none',borderLeft:'none',borderRight:'none' ,borderBottomWidth:1}} 
                 placeholder='간략한 내용'/>
               </td>
             </tr>
@@ -198,7 +209,7 @@ import { borderBottom } from '@mui/system';
             <tr>
               <td width="140px" align="center" style={{fontSize:15,fontWeight:'bolder'}}> Detailed Content</td>
               <td>
-                <textarea name="content" value={ content } placeholder="상품 내용을 입력하세요" onChange={ onInput } style={{width:250,height:100}} />
+                <textarea name="content" id={content} value={ content } placeholder="상품 내용을 입력하세요" onChange={ onInput } style={{width:250,height:100}} />
                 <div id="contentDiv">{ contentDiv }</div>
               </td>
             </tr>
@@ -207,7 +218,7 @@ import { borderBottom } from '@mui/system';
             <tr>
               <td width="140px" align="center" style={{fontSize:15,fontWeight:'bolder'}}>Price</td>
               <td>
-                <input type="text" name="price" value={ price } onChange={ onInput } style={{width:250,background:'transparent',borderTop:'none',borderLeft:'none',borderRight:'none' ,borderBottomWidth:1}}
+                <input type="text" name="price" id={price} value={ price } onChange={ onInput } style={{width:250,background:'transparent',borderTop:'none',borderLeft:'none',borderRight:'none' ,borderBottomWidth:1}}
                 placeholder='상품 가격'/>
                 <div id="priceDiv">{ priceDiv }</div>
               </td>
@@ -217,7 +228,7 @@ import { borderBottom } from '@mui/system';
             <tr>
               <td width="140px" align="center" style={{fontSize:15,fontWeight:'bolder'}}>Made in</td>
               <td>
-                <input type="text" name="country" value={ country } onChange={ onInput } style={{width:250,background:'transparent',borderTop:'none',borderLeft:'none',borderRight:'none' ,borderBottomWidth:1}}
+                <input type="text" name="country" id={country} value={ country } onChange={ onInput } style={{width:250,background:'transparent',borderTop:'none',borderLeft:'none',borderRight:'none' ,borderBottomWidth:1}}
                 placeholder='원산지' />
                 <div id="countryDiv">{ countryDiv }</div>
               </td>
@@ -228,16 +239,16 @@ import { borderBottom } from '@mui/system';
             <tr>
               <td width="140px" align="center" style={{fontSize:15,fontWeight:'bolder'}}>Imge</td>
               <td>
-                <input type="file" name='img' onChange={e => readURL(e.target)}/>
+                <input type="file" name='img'  onChange={e => readURL(e.target)}/>
               </td>
             </tr>
             <br/>
             <br/>
             <tr>
               <td colSpan='2' align='center'>
-                <button  style={{all:'unset',color:'blue',cursor:'pointer'}} onClick={ onWriteSubmit }>스토어등록</button>
+                <button  style={{all:'unset',color:'blue',cursor:'pointer'}} onClick={ onUpdateSubmit }>상품 수정</button>
                &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;
-                <button style={{all:'unset',color:'red',cursor:'pointer'}} onClick={ onReset }>취소</button>
+                <button style={{all:'unset',color:'red',cursor:'pointer'}} onClick={ onClose }>취소</button>
               </td>
             </tr>
             <br/><br/>
@@ -248,4 +259,4 @@ import { borderBottom } from '@mui/system';
   );
 };
 
-export default WriteForm;
+export default StoreUpdate;

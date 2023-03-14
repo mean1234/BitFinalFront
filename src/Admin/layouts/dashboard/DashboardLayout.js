@@ -10,7 +10,7 @@ import UserPage from "../../pages/UserPage";
 import BlogPage from "../../pages/BlogPage";
 import Header from "./header";
 import Nav from "./nav";
-import LoginPage from '../../pages/LoginPage';
+import AdminStore from '../../pages/AdminStore';
 
 // ----------------------------------------------------------------------
 
@@ -60,7 +60,7 @@ const DashboardLayout = () => {
              <Route path={"/blog"} element={<BlogPage/>}/>
 
              {/* store 상품등록 */}
-             <Route path={"/login"} element={<LoginPage/>}/>
+             <Route path={"/AdminStore"} element={<AdminStore/>}/>
      </Routes>
      
       </Main>
