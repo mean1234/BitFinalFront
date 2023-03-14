@@ -21,7 +21,7 @@ function AdminBoardModalRead(props){
 
   return (
     <>
-    <Button style={{color:'green'}} onClick={openModal}>게시글&nbsp;보기</Button>
+    <Button style={{color:'green'}} onClick={openModal}>게시글<br/>확인</Button>
     <AdminModal open={modalOpen} close={closeModal} header="게시글 내용">
    <AdminBoardRead  props={adUpSeq1}/>
     </AdminModal> 

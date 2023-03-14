@@ -31,6 +31,7 @@ const Get = () => {
     const seatGetter =()=>{
         axios.get(`http://localhost:8080/book/getSeat?pk=${pk}`)
         .then(res=>{
+            console.log('succeed')
             var copy = res.data;
             setShowDTO(copy)
             setFiller(JSON.parse(copy.movie_seat))
@@ -138,7 +139,7 @@ const Get = () => {
      const payment = () => {
          var merchant_seq;
          //마지막 시퀀스값++ 가져와서 merchant_uid로 활용.
-         axios.get('http://localhost:8080/reservation/getSeq')
+         axios.get('/reservation/getSeq')
          .then(res=>{merchant_seq=(res.data+1)}).catch(err=>console.log(err))
  
  
@@ -180,7 +181,7 @@ const Get = () => {
              copy.push({id:item.id})
          })
          var addData={...showDTO,movie_seat:JSON.stringify(copy)}
-         axios.post('http://localhost:8080/book/addSeat',addData,{
+         axios.post('/book/addSeat',addData,{
              headers:{
                  'Content-Type': 'application/json'
              }
@@ -200,15 +201,15 @@ const Get = () => {
              })
          })
          const reserveData={...showDTO,selectedSeat:JSON.stringify(copy),book_pk:Number(pk),user_id:id}
-         axios.put('http://localhost:8080/reservation/reservation',reserveData,{
+         axios.put('/reservation/reservation',reserveData,{
              headers:{
                  'Content-Type': 'application/json'
              }
          }).then(res=> {
-            axios.post(`http://localhost:8080/store/getUser?username=${sessionStorage.getItem("userName")}`)
+            axios.post(`/store/getUser?username=${sessionStorage.getItem("userName")}`)
             .then(res => {
                 const {phoneNumber} = res.data
-                axios.post('http://localhost:8080/store/sms', null, {params: {
+                axios.post('/store/sms', null, {params: {
                     recipientPhoneNumber : phoneNumber,
                     title : '',
                     content : `BITBOX ${showDTO.movie_cinema}\n${showDTO.movie_title} 예매에 성공하였습니다. \n상영일 : ${showDTO.movie_date}\n상영시간 : ${showDTO.movie_time}`

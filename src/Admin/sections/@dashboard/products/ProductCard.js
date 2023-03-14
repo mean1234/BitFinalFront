@@ -20,7 +20,7 @@ ShopProductCard.propTypes = {
 
 export default function ShopProductCard({ list,movieDelete }) {
 
-  const { movie_poster_url,movie_title,movie_release_start,movie_release_end,movie_agegrade} = list;
+  const { movie_number,movie_poster_url,movie_title,movie_release_start,movie_release_end,movie_agegrade} = list;
   // const { movie_poster_url,movie_title} = list;
   
 
