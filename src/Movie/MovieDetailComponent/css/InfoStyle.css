@@ -3,7 +3,6 @@ body {
     letter-spacing: -1px;
 }
 .detailwrap {
-    color: white;
     border: 1px solid gray;
     background: black;
     height: 100%;
@@ -30,6 +29,7 @@ body {
 
 }
 .backgroundMask{
+    color: white;
     background:radial-gradient(transparent, #011111, #000000);
     opacity: 0.9;
 }

@@ -4,39 +4,42 @@ import { useParams } from 'react-router-dom';
 import '../css/InfoStyle.css';
 
 const StillCut_Tab = () => {
-    
+    // 리스트에서 클릭한 영화 가져오기
+    const { movie_title } = useParams()
+     // 해당 영화 내용물 매칭
+    const [thisMovie, setThisMovie] = useState({}) // 선택된 영화DB
+    const [trailerList, setTrailerList] = useState({}) // 선택된 트레일러DB
+    // const {} = trailerList
+
+    // const [movieURL, setMovieURL] = useState(trailerList.trailer_url1) //data
+    const [selectedTrailer, setSelectedTrailer] = useState('') // 보여줄 영상 URL
+    const [trailerPoster, setTrailerPoster] = useState('') // 보여줄 영상 이미지 URL
+
     useEffect(()=> {
         axios.get('http://localhost:8080/movielist/getMovieList_boxoffice')
         .then(res => {
             var movieData = res.data
             setThisMovie(movieData.find(item => item.movie_title === movie_title))
         })
-        axios.get(`http://localhost:8080/movielist/get_trailer_list?title=${movie_title}`)
-        .then(res => {setTrailerList(res.data)})
+        axios.get(`http://localhost:8080/movielist/get_trailer?title=${movie_title}`)
+        .then(res => {
+            setTrailerList(res.data)
+            // var binData = res.data
+            //     setSelectedTrailer(binData.find(item => item.trailer_url1))
+            //     setTrailerPoster(binData.find(item => item.trailer_poster1))
+            setTrailerPoster(res.data.trailer_poster1)
+            setSelectedTrailer(res.data.trailer_url1)
+            })
         .catch(error => console.log(error))
     }, [])
 
     const [view, setView] = useState(false)
-
-    // 리스트에서 클릭한 영화 가져오기
-    const { movie_title } = useParams()
-    const [thisMovie, setThisMovie]=useState({}) // 선택된 영화DB
-    const [trailerList, setTrailerList] = useState({}) // 선택된 트레일러DB
-
-    const {trailer_poster1,trailer_poster2, trailer_poster3, trailer_sub_title} = trailerList
-
     console.log(trailerList)
-    // console.log(one)
-    // console.log(trailerPoster)
-    // 해당 영화 내용물 매칭
+   
     //자막보기
     const onView = () => {
         setView(!view)
     }
-
-    // const [movieURL, setMovieURL] = useState(trailerList.trailer_url1) //data
-    const [one, setOne] = useState(trailerList.trailer_url1) //one
-    const [trailerPoster, setTrailerPoster] = useState(trailer_poster1)
 
     // 트레일러 리스트 수동 테두리 스위치
     const [list1, setList1] = useState(true)
@@ -48,7 +51,7 @@ const StillCut_Tab = () => {
     const onTrailterView = (trailerNumber) =>{
 
         if (trailerNumber === 1) {
-            setOne(trailerList.trailer_url1)
+            setSelectedTrailer(trailerList.trailer_url1)
             setTrailerPoster(trailerList.trailer_poster1)
             setList1(true)
             setList2(false)
@@ -56,7 +59,7 @@ const StillCut_Tab = () => {
             setList4(false)
         }
         if (trailerNumber === 2) {
-            setOne(trailerList.trailer_url2)
+            setSelectedTrailer(trailerList.trailer_url2)
             setTrailerPoster(trailerList.trailer_poster2)
             setList1(false)
             setList2(true)
@@ -64,7 +67,7 @@ const StillCut_Tab = () => {
             setList4(false)
         }
         if (trailerNumber === 3) {
-            setOne(trailerList.trailer_url3)
+            setSelectedTrailer(trailerList.trailer_url3)
             setTrailerPoster(trailerList.trailer_poster3)
             setList1(false)
             setList2(false)
@@ -72,7 +75,7 @@ const StillCut_Tab = () => {
             setList4(false)
         }
         if (trailerNumber === 4) {
-            setOne(trailerList.trailer_url4)
+            setSelectedTrailer(trailerList.trailer_url4)
             setTrailerPoster(trailerList.trailer_poster4)
             setList1(false)
             setList2(false)
@@ -84,7 +87,7 @@ const StillCut_Tab = () => {
     // 이전 버튼
     const onPreBtn = () => {
         if (list2) {
-            setOne(trailerList.trailer_url1)
+            setSelectedTrailer(trailerList.trailer_url1)
             setTrailerPoster(trailerList.trailer_poster1)
             setList1(true)
             setList2(false)
@@ -92,7 +95,7 @@ const StillCut_Tab = () => {
             setList4(false)
         }
         if (list3) {
-            setOne(trailerList.trailer_url2)
+            setSelectedTrailer(trailerList.trailer_url2)
             setTrailerPoster(trailerList.trailer_poster2)
             setList1(false)
             setList2(true)
@@ -100,7 +103,7 @@ const StillCut_Tab = () => {
             setList4(false)
         }
         if (list4) {
-            setOne(trailerList.trailer_url3)
+            setSelectedTrailer(trailerList.trailer_url3)
             setTrailerPoster(trailerList.trailer_poster3)
             setList1(false)
             setList2(false)
@@ -111,7 +114,7 @@ const StillCut_Tab = () => {
     // 다음 버튼
     const onNextBtn = () => {
         if (list1) {
-            setOne(trailerList.trailer_url2)
+            setSelectedTrailer(trailerList.trailer_url2)
             setTrailerPoster(trailerList.trailer_poster2)
             setList1(false)
             setList2(true)
@@ -119,7 +122,7 @@ const StillCut_Tab = () => {
             setList4(false)
         }
         if (list2) {
-            setOne(trailerList.trailer_url3)
+            setSelectedTrailer(trailerList.trailer_url3)
             setTrailerPoster(trailerList.trailer_poster3)
             setList1(false)
             setList2(false)
@@ -127,7 +130,7 @@ const StillCut_Tab = () => {
             setList4(false)
         }
         if (list3) {
-            setOne(trailerList.trailer_url4)
+            setSelectedTrailer(trailerList.trailer_url4)
             setTrailerPoster(trailerList.trailer_poster4)
             setList1(false)
             setList2(false)
@@ -153,8 +156,8 @@ const StillCut_Tab = () => {
                         
                     </div>
                     <div style={{ marginTop: 30}}>
-                        <video id="videoTag" controls="controls" height="450" poster={ trailerPoster }>
-                                <source src={ one } type="video/mp4"/>
+                        <video key={ selectedTrailer } id="videoTag" controls="controls" height="450" poster={ trailerPoster }>
+                                <source src={ selectedTrailer } type="video/mp4"/>
                                 <track kind="captions"/>
                         </video>
                     </div>
@@ -168,7 +171,7 @@ const StillCut_Tab = () => {
                 <br/>
                     {
                         view && <p style={{ height: '105px', fontWeight: '500', fontSize: '12pt', textAlign: 'center', overflow: 'scroll' }} >
-                            { trailer_sub_title }
+                            { trailerList.trailer_sub_title }
                         </p>
                     }
                 <button onClick={ onView }

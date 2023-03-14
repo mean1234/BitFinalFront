@@ -6,6 +6,9 @@ import '../css/Tt.css';
 import DetailInfo_Tab from './DetailInfo_Tab';
 import DetailRate_Tab from './DetailRate_Tab';
 import StillCut_Tab from './StillCut_Tab';
+import Layout from 'src/Main/Layout';
+import Footer from 'src/Main/Footer';
+
 
 const MovieDetail_Page = (props) => {
 
@@ -77,6 +80,7 @@ const [commentList,setCommentList]=useState([])
 
     return (
         <>
+        <Layout>
             <div className='detailwrap' style={{ margin: 'auto' }}>
                 <div className='container'>
                   <div className='headerBg' style={{ margin: 'auto' }} >
@@ -212,17 +216,21 @@ const [commentList,setCommentList]=useState([])
                                         }
                                     </ul>
                                 </div>
+                                <div style={{ display: 'block' }}>
                                     { 
                                     toggleMenu.filter(item => index === item.id).map((item,index) => (
                                         <div key={index} style={{ margin: 40}} className='tabContent' >{ item.tab }</div>
-                                    ))    
-
+                                        ))    
+                                        
                                     }
+                                </div>
+                            <Footer />
                         </div>{/* section  */}
                     </div> 
                     {/* headerBg */}
                 </div>{/* container */}   
             </div> {/* wrap */}
+        </Layout>
         </>
     );
 };

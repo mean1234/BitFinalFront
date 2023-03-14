@@ -16,7 +16,7 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
         <CookiesProvider>
             <Provider store={store}>
-                <HelmetProvider> {/* React 에서 웹사이트 타이틀(탭 이름)을 동적으로 변경할 수 있게 해준다. */}
+                <HelmetProvider>
                     <BrowserRouter>
                         <App/>
                     </BrowserRouter>

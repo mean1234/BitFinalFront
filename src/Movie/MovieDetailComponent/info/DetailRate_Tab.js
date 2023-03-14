@@ -4,6 +4,7 @@ import '../css/Modal.css';
 import noneImg from '../img/bg-photo.png';
 import axios from 'axios';
 import { Navigate, useParams } from 'react-router-dom';
+import {removeCookieToken, setRefreshToken} from "src/member/storage/Cookie";
 
 const DetailRate_Tab = (props) => {
     // 세션 name 가져오기 ㅠㅠ
@@ -20,14 +21,14 @@ const DetailRate_Tab = (props) => {
         setLoginToggle(!loginToggle)
     }
     // 로그인 모달
-    // const [onLoginModal, setOnLoginModal] = useState(false)
-    // const loginModalOpen = () =>{
-    //     setOnLoginModal(true)
-    //     window.scrollTo(0, 0)
-    // }
-    // const loginModalClose = () =>{
-    //     setOnLoginModal(false)
-    // }
+    const [onLoginModal, setOnLoginModal] = useState(false)
+    const loginModalOpen = () =>{
+        setOnLoginModal(true)
+        window.scrollTo(0, 0)
+    }
+    const loginModalClose = () =>{
+        setOnLoginModal(false)
+    }
     // 별점 value 표기용 
     const [starRating, setStarRating] = useState('')
     // 댓글리스트
@@ -39,6 +40,7 @@ const DetailRate_Tab = (props) => {
         setReviewForm({
             ...reviewForm,
         })
+        window.scrollTo(0, 0)
     }
     const ReviewModalClose = (e) => {
         setOnReviewModal(false)
@@ -218,6 +220,7 @@ const onReviewRadio = (e) => {
 const [reviewStoryDiv, setReviewStoryDiv] = useState('')
 const [reviewRateDiv, setReviewRateDiv] = useState('')
 const [reviewContentDiv, setReviewContentDiv] = useState('')
+
 // 댓글모달 서브밋
 const formSubmit = (e) => {
     e.preventDefault();
@@ -241,7 +244,6 @@ const formSubmit = (e) => {
         axios.post('http://localhost:8080/movielist/user_comment_write', null, { params:reviewForm })
         .then(() => {
             alert('댓글이 작성되었습니다.');
-            ReviewModalClose();
             window.location.reload()
         })
         .catch(error => console.log(error))
@@ -271,6 +273,68 @@ const formReset = (e) => {
     setReviewRateDiv('')
     setReviewContentDiv('')
 }
+
+const commentDelete = (e) => {
+    if(window.confirm('댓글을 삭제하시겠습니까?')){
+        axios.delete(`http://localhost:8080/movielist/user_comment_delete?id=${userName}`)
+        .then(() => {
+            alert('댓글이 삭제되었습니다.')
+            window.location.reload()
+        })
+        .catch(error => console.log(error))
+    }else false;
+  
+}
+const [loginForm, setLoginForm] = useState({
+    username: '',
+    password: ''
+})
+const {username, password} = loginForm;
+const loginInputValue = (e) => {
+
+    const {name, value} = e.target
+    setLoginForm({
+        ...loginForm,
+        [name]: value
+    });
+
+}
+
+const handleSubmit = (event) => {
+    event.preventDefault();
+    axios.post(`http://localhost:3000/auth/login`,{
+        username: loginForm.username,
+        password: loginForm.password
+    }).then(res => {
+        if (res.data) {
+            setRefreshToken(res.data.refreshToken); // 쿠키에 리프레시토큰 저장
+            localStorage.setItem("accessToken", res.data.accessToken); // 로컬스토리지에 엑세스 토큰 저장
+            localStorage.setItem("expireTime", res.data.tokenExpiresIn); // 엑세스토큰 만료시간 저장
+
+            const accessTokenVal = localStorage.getItem("accessToken");
+
+            axios.get("/member/me", {
+                headers: {
+                    Authorization: `Bearer ${accessTokenVal}`
+                }
+            }).then(res => {
+                sessionStorage.setItem("userName", res.data.username);
+                sessionStorage.setItem("birth", res.data.birth);
+                console.log(res.data.name)
+                window.location.reload()
+            }).catch(error => {
+                console.log("(토큰 만료시간(10분)되면 자동 로그아웃)에러 로그인하면 사라져요! " + error.response);
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('expireTime');
+                removeCookieToken();
+            })
+        }
+    }).catch(error => {
+        console.log(error.response);
+        alert("아이디 또는 비밀번호가 틀렸습니다");
+    })
+
+};
     return (
         <>          
                 {/* 프로필 / 댓글란 */}
@@ -315,10 +379,10 @@ const formReset = (e) => {
                                             &nbsp;관람평쓰기&emsp;
                                             {
                                                 loginToggle &&
-                                                <p className='bfLogText' style={{ right: 150, top: 670, paddingTop: 25, cursor: 'default', color: 'black' }}>로그인이 필요한 서비스 입니다.
+                                                <p className='bfLogText' style={{ right: 150, top: 850, paddingTop: 25, cursor: 'default', color: 'black' }}>로그인이 필요한 서비스 입니다.
                                                 <br/>
-                                                <a href="http://localhost:3000/member/loginForm"  style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#c47c7c' }}>로그인 바로가기 {'>'}
-                                                </a>
+                                                <button onClick={ loginModalOpen } style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#c47c7c' }}>로그인 바로가기 {'>'}
+                                                </button>
                                             </p>
                                             }      
                                     </button>{/* 관람평 / 툴팁 */}
@@ -394,7 +458,7 @@ const formReset = (e) => {
                                         <p></p>
                                         <fieldset>
                                             <legend>감상평 작성</legend>
-                                            <input type="text" name="user_story_recommant" value={ user_story_recommant } onChange={ onReviewComment } placeholder='감상 후 어떠셨는지 한 줄로 남겨주세요!' maxLength="100" style={{ width: '600px', height: '50px'}}></input>
+                                            <input type="text" name="user_story_recommant" value={ user_story_recommant } onChange={ onReviewComment } placeholder='감상 후 어떠셨는지 한 줄로 남겨주세요! (30자)' maxLength="30" style={{ width: '600px', height: '50px'}}></input>
                                         </fieldset>
                                         <div id="reviewStoryDiv">&emsp;{ reviewStoryDiv }</div>
                                         <p></p>
@@ -433,16 +497,20 @@ const formReset = (e) => {
                                                         <div style={{ width: '105px', height: '84px', fontSize: '25pt', fontWeight: 200  }}>
                                                                 { commentItem.user_rate }
                                                         </div>
-                                                        <div style={{ width: '635px', height: '84px', color: 'gray', textAlign: 'left' }}>
+                                                        <div style={{width: '200px', height: '84px', color: 'gray', textAlign: 'left' }}>
                                                                 { commentItem.user_content1 }
                                                                 { commentItem.user_content2 }
                                                                 { commentItem.user_content3 }
                                                                 { commentItem.user_content4 }
                                                                 { commentItem.user_content5 }
                                                         </div>
-                                                        <div style={{ width: '105px', height: '84px', color: 'grey'}}>
-                                                                { commentItem.user_story_recommant }
+                                                        <div style={{ color: 'gray' , display: 'block' }}>
+                                                            <p style={{ textAlign: 'left' }}>{ commentItem.user_story_recommant }</p>
                                                         </div>
+                                                        { userName === commentItem.user_name &&
+                                                            
+                                                            <button onClick={ commentDelete } style={{ transform: 'translateX(80px)', position: 'absolute', right: 100, background: 'none', border: 0, color: 'lightpink' }}>댓글 삭제</button>
+                                                        }
                                                     </div>
                                                 
                                             </div> {/* 댓글내용 */}
@@ -452,7 +520,7 @@ const formReset = (e) => {
                             })
                         }
                         {/* 로그인 모달 */}
-                    {/* {
+                    {
                         onLoginModal &&
                         <>
                             <div className='loginModalBg'></div>
@@ -461,46 +529,37 @@ const formReset = (e) => {
                                 <span style={{ margin: 25, fontSize: '15pt'}}>로그인</span>
                                 <p className='loginModalXBtn' style={{ paddingBottom: -10 }} onClick={ loginModalClose }>X</p>
                             </div>
+
                                 <div>
                                     <form className='loginModalForm'>
-                                        <table style={{ position: 'relative', top: 50, margin: 'auto'}} cellSpacing="10">
+                                        <table style={{ position: 'relative', top: 70, margin: 'auto'}} cellSpacing="10">
                                             <tbody>
                                                 <tr>
                                                     <td>
-                                                    <input className='loginModalFormId' type="text" placeholder='아이디'/>
+                                                    <input className='loginModalFormId' type="text" name="username" id="username" placeholder='아이디' value={ username } onChange={ loginInputValue }/>
                                                     </td>
                                                 </tr>
                                                 <tr>
                                                     <td>
-                                                        <input className='loginModalFormPwd' type="password" placeholder='비밀번호'/>
+                                                        <input className='loginModalFormPwd' name="password" id="password" type="password" placeholder='비밀번호' value={ password } onChange={ loginInputValue } />
                                                     </td>
                                                 </tr>
                                                 
-                                                <br/>
-                                                <button className='loginModalBtn'>로그인</button>
+                                                <br/><br/>
+                                                <button className='loginModalBtn' onClick={ handleSubmit }>로그인</button>
                                             </tbody>
                                         </table>
                                     </form>
-                                    <div style={{ position: 'relative', fontWeight: 400, lineHeight: 5, textAlign:'center', marginTop: 50 }}>
-                                        <a href="#" className='loginLink' style={{ padding: 10 }}>&nbsp;ID/PW 찾기</a> | 
-                                        <a href="#" className='loginLink' style={{ padding: 10 }}> 회원가입</a> | 
-                                        <a href="#" className='loginLink' style={{ padding: 10 }}> 비회원 예매확인</a>
+                                    <div style={{ position: 'relative', fontWeight: 400, lineHeight: 5, textAlign:'center', marginTop: 70 }}>
+                                        <a href="http://localhost:3000/member/FindIdPasswordRoutes" className='loginLink' style={{ padding: 10 }}>&nbsp;ID/PW 찾기</a> | 
+                                        <a href="http://localhost:3000/member/joinForm" className='loginLink' style={{ padding: 10 }}> 회원가입</a>
                                     </div>
                                     <div style={{ position: 'relative', fontWeight: 400, lineHeight: 5, textAlign:'center' }}>
-                                        <a href="#" style={{ padding: 30 }}>
-                                            <img src="https://www.megabox.co.kr/static/pc/images/member/ico-naver.png" />
-                                        </a>
-                                        <a href="#" style={{ padding: 30 }}>
-                                            <img src="https://www.megabox.co.kr/static/pc/images/member/ico-kakao.png" />
-                                        </a>
-                                        <a href="#" style={{ padding: 30 }}>
-                                            <img src="https://www.megabox.co.kr/static/pc/images/member/ico-payco.png" />
-                                        </a>
                                     </div>
                                 </div>
                             </div>
                          </>
-                    } */}
+                    }
                 </div>
         </>
     );

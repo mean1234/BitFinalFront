@@ -4,10 +4,12 @@ import '../css/Modal.css';
 import { useNavigate, useParams } from 'react-router-dom';
 import noneImg from '../img/bg-photo.png';
 import axios from 'axios';
-// import { Chart } from 'chart.js';
 import { Radar, Line } from 'react-chartjs-2';
-// import faker from 'faker';
-// import { Chart as ChartJS } from 'chart.js/auto';
+import {removeCookieToken, setRefreshToken} from "src/member/storage/Cookie";
+import Footer from 'src/Main/Footer';
+
+
+
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -83,6 +85,58 @@ const DetailInfoTab = (props) => {
     const onView = () => {
         setView(!view)
     }
+
+
+    const [loginForm, setLoginForm] = useState({
+        username: '',
+        password: ''
+    })
+    const {username, password} = loginForm;
+    const loginInputValue = (e) => {
+
+        const {name, value} = e.target
+        setLoginForm({
+            ...loginForm,
+            [name]: value
+        });
+
+    }
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        axios.post(`http://localhost:3000/auth/login`,{
+            username: loginForm.username,
+            password: loginForm.password
+        }).then(res => {
+            if (res.data) {
+                setRefreshToken(res.data.refreshToken); // 쿠키에 리프레시토큰 저장
+                localStorage.setItem("accessToken", res.data.accessToken); // 로컬스토리지에 엑세스 토큰 저장
+                localStorage.setItem("expireTime", res.data.tokenExpiresIn); // 엑세스토큰 만료시간 저장
+
+                const accessTokenVal = localStorage.getItem("accessToken");
+
+                axios.get("/member/me", {
+                    headers: {
+                        Authorization: `Bearer ${accessTokenVal}`
+                    }
+                }).then(res => {
+                    sessionStorage.setItem("userName", res.data.username);
+                    sessionStorage.setItem("birth", res.data.birth);
+                    console.log(res.data.name)
+                    window.location.reload()
+                }).catch(error => {
+                    console.log("(토큰 만료시간(10분)되면 자동 로그아웃)에러 로그인하면 사라져요! " + error.response);
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('expireTime');
+                    removeCookieToken();
+                })
+            }
+        }).catch(error => {
+            console.log(error.response);
+            alert("아이디 또는 비밀번호가 틀렸습니다");
+        })
+
+    };
+
     
     useEffect((e) => {
         axios.get('http://localhost:8080/movielist/getMovieList_boxoffice')
@@ -93,7 +147,7 @@ const DetailInfoTab = (props) => {
             //         .catch(error => console.log(error))
         // 더보기 버튼 유무            
         const onBtn = () => {
-            data.filter(thisMovie => thisMovie?.movie_title === movie_title, thisMovie?.movie_info_title2 === '' ? setBtn(false) : setBtn(true))
+            data.filter(thisMovie => thisMovie?.movie_title === movie_title, thisMovie?.movie_info_title2 === null ? setBtn(false) : setBtn(true))
         }
         onBtn()
     }, [])
@@ -287,7 +341,6 @@ const DetailInfoTab = (props) => {
             axios.post('http://localhost:8080/movielist/user_comment_write', null, { params:reviewForm })
             .then(() => {
                 alert('댓글이 작성되었습니다.');
-                // ReviewModalClose();
                 window.location.reload()
                 
             })
@@ -318,13 +371,25 @@ const DetailInfoTab = (props) => {
         setReviewContentDiv('')
 
     }
+    
+    const commentDelete = (e) => {
+        if(window.confirm('댓글을 삭제하시겠습니까?')){
+            axios.delete(`http://localhost:8080/movielist/user_comment_delete?id=${userName}`)
+            .then(() => {
+                alert('댓글이 삭제되었습니다.')
+                window.location.reload()
+            })
+            .catch(error => console.log(error))
+        }else false;
+      
+    }
 
     const testRadar = {
         labels: ['연출', '배우', 'OST', '영상미', '스토리'],
         datasets: [{
             type: 'radar',
             label: "관람포인트",
-            data: [ thisMovie?.movie_info_point1, thisMovie?.movie_info_point2, thisMovie?.movie_info_point3,thisMovie?.movie_info_point4,thisMovie?.movie_info_point5],
+            data: [ thisMovie?.movie_info_point1, thisMovie?.movie_info_point2, thisMovie?.movie_info_point3,thisMovie?.movie_info_point4,thisMovie?.movie_info_point5 ],
             backgroundColor: 'rgba(196, 124, 124, 0.3)',
             borderColor: 'rgba(141, 7, 7, 0.4)',
             borderWidth: 1
@@ -332,10 +397,10 @@ const DetailInfoTab = (props) => {
     }
 
     const testLine = {
-        labels: ['01.12','01.13','01.14','01.15','01.16'],
+        labels: ['01.15','01.16','01.17','01.18','01.19'],
         datasets: [{
             label: "관람객수",
-            data: [ thisMovie?.movie_totalspactators, thisMovie?.movie_totalspactators, thisMovie?.movie_totalspactators, thisMovie?.movie_totalspactators, thisMovie?.movie_totalspactators ],
+            data: [ thisMovie?.movie_info_point1, thisMovie?.movie_info_point2, thisMovie?.movie_info_point3,thisMovie?.movie_info_point4,thisMovie?.movie_info_point5 ],
             backgroundColor: 'rgba(196, 124, 124, 0.3)',
             borderColor: 'rgba(141, 7, 7, 0.4)',
         }],
@@ -350,7 +415,7 @@ const DetailInfoTab = (props) => {
                         view && thisMovie?.movie_info_title2
                     }
                     {
-                        btn &&
+                        thisMovie?.movie_info_title2 && 
                         <button onClick={ onView }
                          className='viewBtn'
                          >{ view ? '닫기' : '더보기' }</button>
@@ -399,7 +464,7 @@ const DetailInfoTab = (props) => {
                     {/* 프로필 & 댓글 작성 & 로그인 여부 */}
                     <div style={{ margin: 'auto'}}>
                         <br/>
-                        <p style={{ color: '#8d0707', fontSize: '18pt', fontWeight: 500}}>
+                        <p style={{ color: '#8d0707', fontSize: '18pt', fontWeight: 500 }}>
                             { thisMovie?.movie_title } 대한 <span style={{ color: '#c47c7c'}}>{ commentList.length }</span>개의 이야기가 있어요!
                         </p>
 
@@ -421,9 +486,9 @@ const DetailInfoTab = (props) => {
                                         &nbsp;관람평쓰기&emsp;
                                         {
                                             loginToggle &&
-                                            <p className='bfLogText' style={{ right: 150, top: 1350, paddingTop: 25, cursor: 'default', color: 'black' }}>로그인이 필요한 서비스 입니다.<br/>
-                                                <a href="http://localhost:3000/member/loginForm" style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#c47c7c' }}>로그인 바로가기 {'>'}
-                                                </a>
+                                            <p className='bfLogText' style={{ right: 150, top: 1530, paddingTop: 25, cursor: 'default', color: 'black' }}>로그인이 필요한 서비스 입니다.<br/>
+                                                <button onClick={ loginModalOpen } style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#c47c7c' }}>로그인 바로가기 {'>'}
+                                                </button>
                                             </p>
                                         }
                                     </button>{/* 관람평 / 툴팁 */}
@@ -456,7 +521,7 @@ const DetailInfoTab = (props) => {
                         
                     </div>{/* 프로필 & 댓글 작성 & 로그인 여부 */}
                                 {/* 로그인 모달 */}
-                                {/* {
+                                {
                                     onLoginModal &&
                                     <>
                                         <div className='loginModalBg'></div>
@@ -472,40 +537,30 @@ const DetailInfoTab = (props) => {
                                                         <tbody>
                                                             <tr>
                                                                 <td>
-                                                                <input className='loginModalFormId' type="text" placeholder='아이디'/>
+                                                                <input className='loginModalFormId' type="text" name="username" id="username" placeholder='아이디' value={ username } onChange={ loginInputValue } />
                                                                 </td>
                                                             </tr>
                                                             <tr>
                                                                 <td>
-                                                                    <input className='loginModalFormPwd' type="password" placeholder='비밀번호'/>
+                                                                    <input className='loginModalFormPwd' type="password" name="password" id="password" placeholder='비밀번호' value={ password } onChange={ loginInputValue }/>
                                                                 </td>
                                                             </tr>
                                                             
-                                                            <br/>
-                                                            <button className='loginModalBtn' >로그인</button>
+                                                            <br/><br/>
+                                                            <button type="submit" className='loginModalBtn' onClick={ handleSubmit } >로그인</button>
                                                         </tbody>
                                                     </table>
                                                 </form>
-                                                <div style={{ position: 'relative', fontWeight: 400, lineHeight: 5, textAlign:'center', marginTop: 50 }}>
-                                                    <a href="#" className='loginLink' style={{ padding: 10 }}>&nbsp;ID/PW 찾기</a> | 
-                                                    <a href="#" className='loginLink' style={{ padding: 10 }}> 회원가입</a> | 
-                                                    <a href="#" className='loginLink' style={{ padding: 10 }}> 비회원 예매확인</a>
+                                                <div style={{ position: 'relative', fontWeight: 400, lineHeight: 5, textAlign:'center', marginTop: 70 }}>
+                                                    <a href="http://localhost:3000/member/FindIdPasswordRoutes" className='loginLink' style={{ padding: 10 }}>&nbsp;ID/PW 찾기</a> | 
+                                                    <a href="http://localhost:3000/member/joinForm" className='loginLink' style={{ padding: 10 }}> 회원가입</a>
                                                 </div>
                                                 <div style={{ position: 'relative', fontWeight: 400, lineHeight: 5, textAlign:'center' }}>
-                                                    <a href="#" style={{ padding: 30 }}>
-                                                        <img src="https://www.megabox.co.kr/static/pc/images/member/ico-naver.png" />
-                                                    </a>
-                                                    <a href="#" style={{ padding: 30 }}>
-                                                        <img src="https://www.megabox.co.kr/static/pc/images/member/ico-kakao.png" />
-                                                    </a>
-                                                    <a href="#" style={{ padding: 30 }}>
-                                                        <img src="https://www.megabox.co.kr/static/pc/images/member/ico-payco.png" />
-                                                    </a>
                                                 </div>
                                             </div>
                                         </div>
                                      </>
-                                } */}
+                                }
 
                                 {/* 평점 모달 */}
                                 {
@@ -554,7 +609,7 @@ const DetailInfoTab = (props) => {
                                                     <p></p>
                                                     <fieldset>
                                                         <legend>감상평 작성</legend>
-                                                        <input type="text" name="user_story_recommant" value={ user_story_recommant } onChange={ onReviewComment } placeholder='감상 후 어떠셨는지 한 줄로 남겨주세요!' maxLength="100" style={{ width: '600px', height: '50px'}}></input>
+                                                        <input type="text" name="user_story_recommant" value={ user_story_recommant } onChange={ onReviewComment } placeholder='감상 후 어떠셨는지 한 줄로 남겨주세요! (30자)' maxLength="30" style={{ width: '600px', height: '50px'}}></input>
                                                     </fieldset>
                                                     <div id="reviewStoryDiv">&emsp;{ reviewStoryDiv }</div>
                                                     <p></p>
@@ -599,16 +654,20 @@ const DetailInfoTab = (props) => {
                                                         <div style={{ width: '105px', height: '84px', fontSize: '25pt', fontWeight: 200  }}>
                                                                 { commentItem.user_rate }
                                                         </div>
-                                                        <div style={{ width: '635px', height: '84px', color: 'gray', textAlign: 'left' }}>
+                                                        <div style={{ width: '200px', height: '84px', color: 'gray', textAlign: 'left' }}>
                                                                 { commentItem.user_content1 } 
                                                                 { commentItem.user_content2 } 
                                                                 { commentItem.user_content3 } 
                                                                 { commentItem.user_content4 } 
                                                                 { commentItem.user_content5 } 
                                                         </div>
-                                                        <div style={{ width: '105px', height: '84px', color: 'gray', textAlign: 'left' }}>
-                                                                { commentItem.user_story_recommant }
+                                                        <div style={{ color: 'gray' , display: 'block' }}>
+                                                            <p style={{ textAlign: 'left' }}>{ commentItem.user_story_recommant }</p>
                                                         </div>
+                                                        { userName === commentItem.user_name &&
+                                                            
+                                                            <button onClick={ commentDelete } style={{ transform: 'translateX(80px)', position: 'absolute', right: 100, background: 'none', border: 0, color: 'lightpink' }}>댓글 삭제</button>
+                                                        }
                                                     </div>
                                                 
                                             </div> {/* 댓글내용 */}
@@ -619,7 +678,8 @@ const DetailInfoTab = (props) => {
                             })
                         }
                 </div>
-            </div>    
+            </div> 
+            {/* <Footer/>    */}
         </>
     );
 };

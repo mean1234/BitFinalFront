@@ -144,7 +144,12 @@ export default function MovieSearchNInsert() {
     const insertMovie = () => {
 
         // 날짜 형식 변환
-        const movie_title = movieSearchData[0].title.replace('<b>','').replace('</b>','').replace('<b>','').replace('</b>','');
+        const movie_title = movieSearchData[0].title.replace('<b>','')
+            .replace('</b>','').replace('<b>','').replace('</b>','').replace('<b>','')
+            .replace('</b>','').replace('<b>','').replace('</b>','').replace('<b>','').replace('</b>','')
+            .replace('<b>','').replace('</b>','').replace('<b>','').replace('</b>','').replace('<b>','').replace('</b>','')
+            .replace('<b>','').replace('</b>','').replace('<b>','').replace('</b>','').replace('<b>','').replace('</b>','')
+            .replace('<b>','').replace('</b>','');
         const movie_subtitle = movieSearchData[0].subtitle;
         const movie_poster_url = 'https://www.themoviedb.org/t/p/w600_and_h900_bestv2'+apiData.poster_path;
         const movie_header_url = 'https://www.themoviedb.org/t/p/w600_and_h900_bestv2'+apiData.backdrop_path;
